@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>显色筛选法筛选含重组质粒的受体细胞</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #333;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #2c3e50, #3498db);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .objective {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .objective-content {
+            flex: 1;
+        }
+        
+        .objective-image {
+            flex-shrink: 0;
+            max-width: 35%;
+        }
+        
+        .objective h2 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.4rem;
+        }
+        
+        .page {
+            display: none;
+            padding: 15px;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-start {
+            display: block;
+            margin: 20px auto;
+            font-size: 1.1rem;
+            padding: 12px 25px;
+        }
+        
+        .lab-area {
+            display: flex;
+            margin-top: 15px;
+            min-height: 400px;
+            gap: 15px;
+        }
+        
+        .materials {
+            width: 25%;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+        
+        .materials h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+            font-size: 1.2rem;
+        }
+        
+        .materials-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .material-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px;
+            background: white;
+            cursor: grab;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .material-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+        
+        .material-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        
+        .material-item p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .test-tube {
+            width: 160px;
+            height: 300px;
+            background: linear-gradient(to bottom, rgba(200, 230, 255, 0.3), rgba(150, 200, 255, 0.6));
+            border: 3px solid #3498db;
+            border-radius: 0 0 20px 20px;
+            margin: 15px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .cell-in-tube {
+            position: absolute;
+            width: 80%;
+            left: 10%;
+            opacity: 0.9;
+            transition: transform 0.3s ease;
+        }
+        
+        .tube-colony {
+            position: absolute;
+            display: block;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .cell-tag {
+            background: #e3f2fd;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #1976d2;
+            border: 1px solid #90caf9;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+        
+        .instruction {
+            background: linear-gradient(to right, #e3f2fd, #bbdefb);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+            border-left: 4px solid #2196f3;
+            color: #0d47a1;
+            font-weight: 500;
+        }
+        
+        .drop-area {
+            width: 200px;
+            height: 200px;
+            border: 3px dashed #3498db;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            font-size: 16px;
+            background: rgba(52, 152, 219, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .drop-area.active {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        
+        .plate {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #95a5a6;
+            margin: 10px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .colonies-plate {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            margin: 0 auto;
+            padding: 10px; /* 减小内边距，增加可用空间 */
+            box-sizing: border-box;
+        }
+        
+        .colony {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background-color: #f9d56e;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #d4ac0d;
+            opacity: 0;
+            transform: scale(0);
+            animation: colonyAppear 0.5s ease forwards;
+        }
+        
+        @keyframes colonyAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .colony:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+        
+        .colony.selected {
+            background-color: #e74c3c;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.7);
+            border-color: #c0392b;
+        }
+        
+        .colony-number {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            pointer-events: none;
+            text-shadow: 0 0 2px white;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.3s forwards;
+        }
+        
+        .plate-title {
+            text-align: center;
+            font-weight: 700;
+            margin-top: 15px;
+            color: #2c3e50;
+            font-size: 17px;
+        }
+        
+        .feedback {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feedback h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .feedback-item {
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .correct {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+        
+        /* 总结项特殊样式 */
+        .feedback-item:last-child {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        
+        .feedback-item:last-child .correct,
+        .feedback-item:last-child .incorrect {
+            color: white;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            animation: popIn 0.4s ease;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .close-btn {
+            margin-top: 20px;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            padding: 10px 25px;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .steps-container {
+            margin: 20px 0;
+        }
+        
+        .steps-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .exp-step {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            flex: 1;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-info {
+            flex-grow: 1;
+        }
+        
+        .hint {
+            display: inline-block;
+            background: #ffeaa7;
+            color: #d35400;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .media-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .media-correct {
+            background: #d5f5e3;
+            color: #27ae60;
+            border: 1px solid #2ecc71;
+        }
+        
+        .media-incorrect {
+            background: #fadbd8;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+        
+        .remaining-hint {
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #e74c3c;
+        }
+        
+        .selection-info {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .lab-area {
+                flex-direction: column;
+            }
+            
+            .materials, .workspace {
+                width: 100%;
+            }
+            
+            .plate-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 第一页：介绍 -->
+        <div class="page active" id="page1">
+            <header>
+                <h1>显色筛选法筛选含重组质粒的受体细胞</h1>
+            </header>
+            
+            <div class="objective">
+                <div class="objective-content">
+                    <h2>学习目标</h2>
+                    <p>利用质粒上的显色标记基因（如lacZ'）和显色底物（如X-gal）筛选转化细胞的原理和方法</p>
+                </div>
+                <div class="objective-image">
+                    <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/33cf1c51e6644ed2a4a015c55527d8aa/%E9%87%8D%E7%BB%84%E8%B4%A8%E7%B2%92.jpg?Expires=1826977175&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=uDgjP3H%2Betq256XGoSYFfnCvsPk%3D" alt="重组质粒" style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+            
+            <div class="steps-container">
+                <div class="steps-row">
+                    <div class="exp-step">
+                        <div class="step-number">1</div>
+                        <div class="step-info">
+                            <p><strong>细胞选择</strong> - 将可能存在于转化菌液中的细胞类型拖入试管</p>
+                            <span class="hint">包括无质粒细胞、空载质粒细胞和重组质粒细胞</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exp-step">
+                        <div class="step-number">2</div>
+                        <div class="step-info">
+                            <p><strong>筛选涂布</strong> - 选择正确的培养基进行筛选</p>
+                            <span class="hint">根据重组质粒类型选择培养基</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="steps-row">
+                    <div class="exp-step">
+                        <div class="step-number">3</div>
+                        <div class="step-info">
+                            <p><strong>筛选结果</strong> - 查看实验反馈</p>
+                            <span class="hint">了解操作正确率</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-start" id="startBtn">开始实验</button>
+            
+            <div class="progress-bar">
+                <div class="progress" style="width: 15%"></div>
+            </div>
+        </div>
+
+        <!-- 第二页：步骤1 - 细胞选择 -->
+        <div class="page" id="page2">
+            <header>
+                <h1>显色筛选法实验</h1>
+                <p>步骤 1: 细胞选择</p>
+            </header>
+            
+            <div class="lab-area">
+                <div class="materials" id="materialsArea">
+                    <h3>材料区</h3>
+                    <div class="materials-grid">
+                        <div class="material-item" draggable="true" data-type="cell" data-cell="no-plasmid">
+                            <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/a2583a81ad9640c4966d57efd19c00cf/%E6%97%A0%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=i6Doae7ZC3T%2BOT0TWIXCKZyv%2BFw%3D" alt="无质粒细胞">
+                            <p>无质粒细胞（Kan<sup>s</sup>lacZ<sup>-</sup>）</p>
+                        </div>
+                        <div class="material-item" draggable="true" data-type="cell" data-cell="empty-plasmid">
+                            <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/0f8a9288f4344ce9a1694b35582b759b/%E7%A9%BA%E8%BD%BD%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=2xDTV63Ws93C3I%2Fs%2ByRqYy5gYn4%3D" alt="空载质粒细胞">
+                            <p>空载质粒细胞（Kan<sup>r</sup>lacZ<sup>+</sup>）</p>
+                        </div>
+                        <div class="material-item" draggable="true" data-type="cell" data-cell="bamhi-plasmid">
+                            <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/892f76a78000450dbf6a3c40fcd80064/%E5%90%ABBamHI%E9%87%8D%E7%BB%84%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=N%2BF3BZSDB%2BHHT5zCDbjyIihUsp0%3D" alt="含通过BamHI限制酶介导的重组质粒的细胞">
+                            <p>重组质粒细胞（Kan<sup>r</sup>lacZ<sup>-</sup>）</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="workspace" id="workspace">
+                    <div class="instruction" id="instruction1">
+                        <strong>步骤 1:</strong> 已转化的大肠杆菌菌液中可能含哪些细胞，请将左侧对应的细胞拖入试管。
+                        <div class="hint">选择细胞类型</div>
+                    </div>
+                    <div class="test-tube" id="testTube"></div>
+                    <div class="cell-names" id="cellNames"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 15px 20px;">
+                <button class="btn" id="prevStepBtn">上一步</button>
+                <button class="btn" id="nextStepBtn" disabled>下一步</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progressBar" style="width: 20%"></div>
+            </div>
+        </div>
+        
+        <!-- 第三页：步骤2 - 筛选涂布 -->
+        <div class="page" id="page3">
+            <header>
+                <h1>显色筛选法实验</h1>
+                <p>步骤 2: 筛选涂布</p>
+            </header>
+            
+            <div class="lab-area">
+                <div class="materials">
+                    <h3>材料区</h3>
+                    <div class="materials-grid">
+                        <div class="material-item" draggable="true" data-type="media" data-media="kanxgal">
+                            <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/838f446f803b4ba5ae17c31545dee45e/%E7%A9%BA%E7%99%BD%E5%B9%B3%E6%9D%BF.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=ywgJgEKrxDjnkMfHIWKA3%2B94MHk%3D" alt="Kan+X-gal培养基" style="object-fit: cover; height:120px">
+                            <p>Kan+X-gal培养基</p>
+                        </div>
+                        <div class="material-item" draggable="true" data-type="media" data-media="kan">
+                            <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/838f446f803b4ba5ae17c31545dee45e/%E7%A9%BA%E7%99%BD%E5%B9%B3%E6%9D%BF.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=ywgJgEKrxDjnkMfHIWKA3%2B94MHk%3D" alt="Kan培养基" style="object-fit: cover; height:120px">
+                            <p>Kan培养基</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="workspace">
+                    <div class="instruction" id="instruction2">
+                        <strong>步骤 2:</strong> 筛选涂布：请将培养基拖拽到下方区域
+                        <div class="hint">根据重组质粒类型选择正确的培养基</div>
+                    </div>
+                    <div class="drop-area" id="mediaDropArea">
+                        拖放培养基至此
+                    </div>
+                    <div id="mediaFeedback" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 15px 20px;">
+                <button class="btn" id="prevStepBtn3">上一步</button>
+                <button class="btn" id="nextStepBtn3" disabled>下一步</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progressBar3" style="width: 40%"></div>
+            </div>
+        </div>
+        
+        <!-- 第四页：步骤3 - 筛选结果 -->
+        <div class="page" id="page4">
+            <header>
+                <h1>显色筛选法实验</h1>
+                <p>步骤 3: 筛选结果</p>
+            </header>
+            
+            <div class="workspace">
+                <div class="instruction">
+                    <strong>步骤 3:</strong> 筛选结果：菌落生长情况
+                    <div class="hint">观察筛选培养基上的菌落生长情况</div>
+                </div>
+                <div class="plate" id="primaryPlateContainer">
+                    <!-- 添加空白平板背景图片 -->
+                    <img src="https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/838f446f803b4ba5ae17c31545dee45e/%E7%A9%BA%E7%99%BD%E5%B9%B3%E6%9D%BF.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=ywgJgEKrxDjnkMfHIWKA3%2B94MHk%3D" alt="筛选平板背景" style="position: absolute; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    <div class="colonies-plate" id="primaryColonies"></div>
+                </div>
+                <div class="plate-title">筛选培养基</div>
+                
+                <div class="selection-info">
+                    请选择含有重组质粒的菌落
+                </div>
+                
+                <div class="question-container" id="questionContainer" style="margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; display: none;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">您筛选出的菌落含有哪种重组质粒：</p>
+                    <div style="margin-left: 20px;">
+                        <label style="display: block; margin: 8px 0;">
+                            <input type="radio" name="colonyType" value="psti">
+                            A. Kan<sup>s</sup>lacZ<sup>+</sup>
+                        </label>
+                        <label style="display: block; margin: 8px 0;">
+                            <input type="radio" name="colonyType" value="bamhi">
+                            B. Kan<sup>r</sup>lacZ<sup>-</sup>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin: 15px 20px;">
+                <button class="btn" id="prevStepBtn4">上一步</button>
+                <button class="btn" id="nextStepBtn4">完成</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progressBar4" style="width: 80%"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal" id="messageModal">
+        <div class="modal-content">
+            <p id="modalMessage">这里是提示信息</p>
+            <button class="btn close-btn" id="closeModal">确定</button>
+        </div>
+    </div>
+
+    <!-- 完成实验弹窗 -->
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <p>恭喜你，完成所有实验！</p>
+            <div style="margin-top: 20px;">
+                <button class="btn" id="confirmBtn">确认</button>
+                <button class="btn" id="restartBtn">重新实验</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedCells = [];
+        let selectedMedia = null;
+        let correctColonies = [];
+        let userSteps = [];
+        let currentStep = 1;
+        let hasBamhi = false;
+        let hasPsti = false;
+        let primaryPositions = [];
+        let colonyNumbers = {};
+        let colonyColors = {}; // 新增：记录菌落颜色
+        let selectedCorrectColonies = [];
+        let totalCorrectColonies = 0;
+
+        // DOM元素
+        const startBtn = document.getElementById('startBtn');
+        const pages = document.querySelectorAll('.page');
+        const testTube = document.getElementById('testTube');
+        const cellNames = document.getElementById('cellNames');
+        const mediaDropArea = document.getElementById('mediaDropArea');
+        const primaryColonies = document.getElementById('primaryColonies');
+        const modal = document.getElementById('messageModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModal = document.getElementById('closeModal');
+        const instruction1 = document.getElementById('instruction1');
+        const instruction2 = document.getElementById('instruction2');
+        const mediaFeedback = document.getElementById('mediaFeedback');
+        const progressBar = document.getElementById('progressBar');
+        const progressBar3 = document.getElementById('progressBar3');
+        const progressBar4 = document.getElementById('progressBar4');
+        const remainingHint = document.getElementById('remainingHint');
+        const selectedCountEl = document.getElementById('selectedCount');
+        const totalColoniesEl = document.getElementById('totalColonies');
+        const questionContainer = document.getElementById('questionContainer');
+        
+        // 导航按钮
+        const nextStepBtn = document.getElementById('nextStepBtn');
+        const prevStepBtn = document.getElementById('prevStepBtn');
+        const nextStepBtn3 = document.getElementById('nextStepBtn3');
+        const prevStepBtn3 = document.getElementById('prevStepBtn3');
+        const nextStepBtn4 = document.getElementById('nextStepBtn4');
+        const prevStepBtn4 = document.getElementById('prevStepBtn4');
+
+        // 完成实验弹窗相关元素
+        const completionModal = document.getElementById('completionModal');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 开始按钮点击事件
+        startBtn.addEventListener('click', () => {
+            resetExperiment(); // 确保开始前重置实验
+            showPage(2);
+            setupDragAndDropForPage2();
+        });
+
+        // 关闭模态框
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // 完成实验弹窗事件
+        confirmBtn.addEventListener('click', () => {
+            completionModal.style.display = 'none';
+        });
+
+        restartBtn.addEventListener('click', () => {
+            completionModal.style.display = 'none';
+            resetExperiment();
+            showPage(1); // 回到初始界面
+        });
+
+        // 导航按钮点击事件
+        prevStepBtn.addEventListener('click', () => {
+            showPage(1);
+        });
+
+        nextStepBtn.addEventListener('click', () => {
+            showPage(3);
+            setupDragAndDropForPage3(); // 确保重新设置第三页的拖放功能
+        });
+
+        prevStepBtn3.addEventListener('click', () => {
+            showPage(2);
+            // 返回第二页时清除第三页可能残留的状态
+            mediaDropArea.innerHTML = '拖放培养基至此';
+            mediaDropArea.classList.remove('active');
+            mediaFeedback.style.display = 'none';
+            nextStepBtn3.disabled = true;
+        });
+
+        nextStepBtn3.addEventListener('click', () => {
+            showPage(4);
+            // 显示菌落
+            setTimeout(() => {
+                showColonies(selectedMedia === (hasBamhi ? 'kanxgal' : 'kan'));
+            }, 500);
+        });
+
+        prevStepBtn4.addEventListener('click', () => {
+            showPage(3);
+            // 返回第三页时清除第四页可能残留的状态
+            primaryColonies.innerHTML = '';
+        });
+
+        // 完成按钮点击事件
+        nextStepBtn4.addEventListener('click', () => {
+            // 显示完成弹窗
+            completionModal.style.display = 'flex';
+        });
+
+        // 显示页面 - 确保元素存在再操作
+        function showPage(pageNumber) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示目标页面
+            const targetPage = document.getElementById('page' + pageNumber);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            } else {
+                console.error('页面不存在:', 'page' + pageNumber);
+            }
+        }
+
+        // 设置第二页的拖放功能
+        function setupDragAndDropForPage2() {
+            const materialItems = document.querySelectorAll('#page2 .material-item');
+            
+            let draggedItem = null;
+            let isDragging = false;
+            let startX, startY;
+            
+            materialItems.forEach(item => {
+                // 鼠标拖拽事件
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({
+                        type: item.dataset.type,
+                        value: item.dataset.cell || item.dataset.media
+                    }));
+                });
+                
+                // 触摸屏拖拽事件
+                item.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    draggedItem = {
+                        type: item.dataset.type,
+                        value: item.dataset.cell || item.dataset.media
+                    };
+                    isDragging = true;
+                    item.classList.add('touch-dragging');
+                });
+                
+                item.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); // 防止页面滚动
+                });
+            });
+
+            testTube.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            testTube.addEventListener('drop', (e) => {
+                e.preventDefault();
+                handleCellDrop(e.dataTransfer.getData('text/plain'));
+            });
+            
+            // 触摸屏拖放支持
+            testTube.addEventListener('touchend', (e) => {
+                if (isDragging && draggedItem) {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    
+                    // 检查是否有足够的移动距离来被视为拖拽
+                    const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                    
+                    if (distance > 10) { // 10像素的阈值
+                        handleCellDrop(JSON.stringify(draggedItem));
+                    }
+                    
+                    isDragging = false;
+                    draggedItem = null;
+                    document.querySelectorAll('.touch-dragging').forEach(el => el.classList.remove('touch-dragging'));
+                }
+            });
+            
+            // 触摸屏点击支持（直接点击添加）
+            materialItems.forEach(item => {
+                item.addEventListener('touchend', (e) => {
+                    // 如果不是在拖拽状态，且点击了有效的细胞项，则直接添加
+                    if (!isDragging && e.touches.length === 0 && item.dataset.type === 'cell') {
+                        const cellItem = {
+                            type: item.dataset.type,
+                            value: item.dataset.cell
+                        };
+                        handleCellDrop(JSON.stringify(cellItem));
+                    }
+                });
+            });
+            
+            // 处理细胞拖放的通用函数
+            function handleCellDrop(dataStr) {
+                try {
+                    const data = JSON.parse(dataStr);
+                    if (data.type !== 'cell') return;
+                    
+                    const cellType = data.value;
+                    
+                    // 检查是否已经添加过这种细胞
+                    if (!selectedCells.includes(cellType)) {
+                        // 检查是否已经选择了3种细胞
+                        if (selectedCells.length >= 3) {
+                            // 显示提示信息，告诉用户只能选择三种细胞
+                            let hintElement = document.getElementById('cellSelectionHint');
+                            if (!hintElement) {
+                                hintElement = document.createElement('div');
+                                hintElement.id = 'cellSelectionHint';
+                                hintElement.style.color = '#e74c3c';
+                                hintElement.style.fontWeight = '600';
+                                hintElement.style.textAlign = 'center';
+                                hintElement.style.marginTop = '10px';
+                                hintElement.style.fontSize = '14px';
+                                document.getElementById('workspace').insertBefore(hintElement, nextStepBtn.parentNode);
+                            }
+                            hintElement.textContent = '提示：只能选择三种细胞类型！';
+                            return;
+                        }
+                        
+                        // 检查是否同时选择了通过BamHI限制酶介导的重组质粒和通过PstI限制酶介导的重组质粒（Kan r lacZ-和Kan s lacZ+）
+                        if ((cellType === 'bamhi-plasmid' && selectedCells.includes('psti-plasmid')) ||
+                            (cellType === 'psti-plasmid' && selectedCells.includes('bamhi-plasmid'))) {
+                            let hintElement = document.getElementById('cellSelectionHint');
+                            if (!hintElement) {
+                                hintElement = document.createElement('div');
+                                hintElement.id = 'cellSelectionHint';
+                                hintElement.style.color = '#e74c3c';
+                                hintElement.style.fontWeight = '600';
+                                hintElement.style.textAlign = 'center';
+                                hintElement.style.marginTop = '10px';
+                                hintElement.style.fontSize = '14px';
+                                document.getElementById('workspace').insertBefore(hintElement, nextStepBtn.parentNode);
+                            }
+                            hintElement.textContent = '提示：Kan r lacZ-和Kan s lacZ+不能同时选择！';
+                            return;
+                        }
+                        
+                        selectedCells.push(cellType);
+                        updateTestTube();
+                        
+                        // 检查是否包含通过BamHI限制酶介导的重组质粒或通过PstI限制酶介导的重组质粒
+                        if (cellType === 'bamhi-plasmid') hasBamhi = true;
+                        if (cellType === 'psti-plasmid') hasPsti = true;
+                        
+                        // 记录用户操作
+                        userSteps.push({
+                            step: 1,
+                            action: `添加了${getCellName(cellType)}`,
+                            correct: true
+                        });
+                        
+                        // 清除可能存在的提示信息
+                        const hintElement = document.getElementById('cellSelectionHint');
+                        if (hintElement) {
+                            hintElement.remove();
+                        }
+                    }
+                    
+                    // 如果已经添加了三种细胞，启用下一步按钮
+                    if (selectedCells.length === 3) {
+                        nextStepBtn.disabled = false;
+                    } else {
+                        nextStepBtn.disabled = true;
+                    }
+                } catch (e) {
+                    console.error('处理细胞拖放时出错:', e);
+                }
+            }
+        }
+
+        // 设置第三页的拖放功能
+        function setupDragAndDropForPage3() {
+            const materialItems = document.querySelectorAll('#page3 .material-item');
+            
+            let draggedItem = null;
+            let isDragging = false;
+            let startX, startY;
+            
+            materialItems.forEach(item => {
+                // 鼠标拖拽事件
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({
+                        type: item.dataset.type,
+                        value: item.dataset.cell || item.dataset.media
+                    }));
+                });
+                
+                // 触摸屏拖拽事件
+                item.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    draggedItem = {
+                        type: item.dataset.type,
+                        value: item.dataset.cell || item.dataset.media
+                    };
+                    isDragging = true;
+                    item.classList.add('touch-dragging');
+                });
+                
+                item.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); // 防止页面滚动
+                });
+            });
+
+            mediaDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                mediaDropArea.classList.add('active');
+            });
+
+            mediaDropArea.addEventListener('dragleave', () => {
+                mediaDropArea.classList.remove('active');
+            });
+
+            mediaDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                mediaDropArea.classList.remove('active');
+                handleMediaDrop(e.dataTransfer.getData('text/plain'));
+            });
+            
+            // 触摸屏拖放支持
+            mediaDropArea.addEventListener('touchend', (e) => {
+                if (isDragging && draggedItem) {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    
+                    // 检查是否有足够的移动距离来被视为拖拽
+                    const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                    
+                    if (distance > 10) { // 10像素的阈值
+                        mediaDropArea.classList.remove('active');
+                        handleMediaDrop(JSON.stringify(draggedItem));
+                    }
+                    
+                    isDragging = false;
+                    draggedItem = null;
+                    document.querySelectorAll('.touch-dragging').forEach(el => el.classList.remove('touch-dragging'));
+                }
+            });
+            
+            // 触摸屏点击支持（直接点击添加）
+            materialItems.forEach(item => {
+                item.addEventListener('touchend', (e) => {
+                    // 如果不是在拖拽状态，且点击了有效的培养基项，则直接添加
+                    if (!isDragging && e.touches.length === 0 && item.dataset.type === 'media') {
+                        const mediaItem = {
+                            type: item.dataset.type,
+                            value: item.dataset.media
+                        };
+                        handleMediaDrop(JSON.stringify(mediaItem));
+                    }
+                });
+            });
+            
+            // 处理培养基拖放的通用函数
+            function handleMediaDrop(dataStr) {
+                try {
+                    const data = JSON.parse(dataStr);
+                    if (data.type !== 'media') return;
+                    
+                    const mediaType = data.value;
+                    selectedMedia = mediaType;
+                    
+                    // 检查选择是否正确
+                    let isCorrect = false;
+                    if (hasBamhi && selectedMedia === 'kanxgal') isCorrect = true;
+                    if (hasPsti && selectedMedia === 'kan') isCorrect = true;
+                    
+                    // 先移除之前可能存在的步骤2记录，确保只记录一次操作
+                    const existingStepIndex = userSteps.findIndex(step => step.step === 2);
+                    if (existingStepIndex !== -1) {
+                        userSteps.splice(existingStepIndex, 1);
+                    }
+                    
+                    // 记录用户操作
+                    userSteps.push({
+                        step: 2,
+                        action: `选择了${selectedMedia === 'kanxgal' ? 'Kan+X-gal' : 'Kan'}培养基`,
+                        correct: isCorrect
+                    });
+                    
+                    // 在mediaDropArea中显示培养基图片
+                    mediaDropArea.innerHTML = '';
+                    const mediaImg = document.createElement('img');
+                    mediaImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/838f446f803b4ba5ae17c31545dee45e/%E7%A9%BA%E7%99%BD%E5%B9%B3%E6%9D%BF.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=ywgJgEKrxDjnkMfHIWKA3%2B94MHk%3D';
+                    mediaImg.alt = selectedMedia === 'kanxgal' ? 'Kan+X-gal培养基' : 'Kan培养基';
+                    mediaImg.style.width = '200px';
+                    mediaImg.style.height = '200px';
+                    mediaImg.style.objectFit = 'cover';
+                    mediaImg.style.borderRadius = '50%';
+                    mediaImg.style.display = 'block';
+                    mediaImg.style.margin = '0 auto';
+                    mediaDropArea.appendChild(mediaImg);
+                    
+                    // 在下方显示培养基类型提示
+                    mediaFeedback.style.display = 'block';
+                    if (isCorrect) {
+                        mediaFeedback.className = 'media-feedback media-correct';
+                        mediaFeedback.innerHTML = `✓ 选择正确！${selectedMedia === 'kanxgal' ? 'Kan+X-gal' : 'Kan'}培养基适用于此实验`;
+                        nextStepBtn3.disabled = false;
+                    } else {
+                        mediaFeedback.className = 'media-feedback media-incorrect';
+                        mediaFeedback.innerHTML = `✗ 选择错误！请重新选择正确的培养基`;
+                        
+                        // 提示应该选择什么培养基
+                        if (hasBamhi) {
+                            mediaFeedback.innerHTML += `<br>提示：无法区分空载质粒和重组质粒应选择Kan+X-gal培养基`;
+                        } else if (hasPsti) {
+                            mediaFeedback.innerHTML += `<br>提示：无法区分空载质粒和重组质粒应选择Kan+X-gal培养基`;
+                        }
+                        nextStepBtn3.disabled = true;
+                    }
+                } catch (e) {
+                    console.error('处理培养基拖放时出错:', e);
+                }
+            }
+        }
+
+        // 更新试管显示
+        function updateTestTube() {
+            // 清空试管
+            if(testTube) testTube.innerHTML = '';
+            
+            // 设置试管内细胞从下到上依次排列
+            const cellHeight = 67; // 细胞高度，缩小为原来的三分之二间距
+                
+            // 遍历选中的细胞，添加到试管中并从下到上排列
+            selectedCells.forEach((cell, index) => {
+                const cellContainer = document.createElement('div');
+                cellContainer.className = 'tube-colony';
+                cellContainer.style.bottom = `${20 + index * cellHeight}px`; // 从底部开始，留出边距
+                cellContainer.style.width = '100%';
+                cellContainer.style.textAlign = 'center';
+
+                const cellImg = document.createElement('img');
+                // 根据细胞类型显示对应的图片
+                if (cell === 'no-plasmid') {
+                    cellImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/a2583a81ad9640c4966d57efd19c00cf/%E6%97%A0%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=i6Doae7ZC3T%2BOT0TWIXCKZyv%2BFw%3D';
+                } else if (cell === 'empty-plasmid') {
+                    cellImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/0f8a9288f4344ce9a1694b35582b759b/%E7%A9%BA%E8%BD%BD%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=2xDTV63Ws93C3I%2Fs%2ByRqYy5gYn4%3D';
+                } else if (cell === 'bamhi-plasmid') {
+                    cellImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/892f76a78000450dbf6a3c40fcd80064/%E5%90%ABBamHI%E9%87%8D%E7%BB%84%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=N%2BF3BZSDB%2BHHT5zCDbjyIihUsp0%3D';
+                } else if (cell === 'psti-plasmid') {
+                    cellImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/892f76a78000450dbf6a3c40fcd80064/%E5%90%ABBamHI%E9%87%8D%E7%BB%84%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=N%2BF3BZSDB%2BHHT5zCDbjyIihUsp0%3D';
+                } else {
+                    // 默认使用无质粒细胞-副本.jpg
+                    cellImg.src = 'https://tongyi-main.oss-accelerate.aliyuncs.com/upload/20251123/2362d2116758242404d79bbfaeaeeeca/a2583a81ad9640c4966d57efd19c00cf/%E6%97%A0%E8%B4%A8%E7%B2%92%E7%BB%86%E8%83%9E.jpg?Expires=1826977118&OSSAccessKeyId=LTAI5tL97mBYzVcjkG1cUyin&Signature=i6Doae7ZC3T%2BOT0TWIXCKZyv%2BFw%3D';
+                }
+                // 调整图片样式，彻底消除白边和角，只显示椭圆的细胞部分
+                cellImg.style.width = '110px'; // 保持原始宽度
+                cellImg.style.height = '70px'; // 保持原始高度
+                cellImg.style.display = 'block';
+                cellImg.style.margin = '0 auto';
+                cellImg.style.background = 'transparent';
+                cellImg.style.border = 'none';
+                cellImg.style.borderRadius = '50%'; // 设置圆角为50%，由于宽高比不同，形成椭圆形
+                cellImg.style.overflow = 'hidden'; // 隐藏超出椭圆区域的部分
+                cellImg.style.objectFit = 'cover'; // 使用cover模式，让图片覆盖整个椭圆区域
+                cellImg.style.padding = '0'; // 移除所有内边距
+                cellImg.style.boxShadow = 'none'; // 确保没有阴影
+                cellContainer.appendChild(cellImg);
+
+                if(testTube) testTube.appendChild(cellContainer);
+            });
+            
+            // 在试管外部下方按步骤依次显示所有已选择的细胞类型
+            if (selectedCells.length > 0) {
+                const selectionText = document.createElement('div');
+                selectionText.className = 'selection-info';
+                selectionText.style.marginTop = '15px';
+                selectionText.style.textAlign = 'center';
+                selectionText.style.fontSize = '14px';
+                selectionText.style.color = '#333';
+                
+                // 按步骤依次显示所有选择的细胞，保留上标格式
+                let stepsText = '';
+                selectedCells.forEach((cell, index) => {
+                    // 获取带HTML标签的细胞名称（保留上标格式）
+                    const cellName = getCellName(cell);
+                    // 添加步骤编号和细胞名称
+                    stepsText += `${index + 1}.您选择了${cellName}${index < selectedCells.length - 1 ? '<br>' : ''}`;
+                });
+                
+                selectionText.innerHTML = stepsText;
+                
+                // 清空并添加到cellNames元素（试管外部）
+                if(cellNames) {
+                    cellNames.innerHTML = '';
+                    cellNames.appendChild(selectionText);
+                }
+            } else {
+                // 如果没有选择细胞，清空提示
+                if(cellNames) cellNames.innerHTML = '';
+            }
+        }
+
+        // 显示菌落 - 修改以生成随机颜色的菌落
+        function showColonies(isCorrectSelection) {
+            if(primaryColonies) primaryColonies.innerHTML = '';
+            
+            // 获取容器实际尺寸
+            const plateWidth = primaryColonies.offsetWidth || 160; // 考虑到padding后的值
+            const plateHeight = primaryColonies.offsetHeight || 160;
+            
+            // 确保显示8个菌落
+            const colonyCount = 8;
+            primaryPositions = generateNonOverlappingPositions(colonyCount, plateWidth, plateHeight, 20);
+            
+            // 创建菌落并添加编号
+            colonyNumbers = {};
+            colonyColors = {}; // 初始化菌落颜色记录
+            
+            // 随机分配4个白色和4个蓝色菌落
+            const colors = ['white', 'white', 'white', 'white', 'blue', 'blue', 'blue', 'blue'];
+            shuffleArray(colors); // 打乱颜色数组
+            
+            for (let i = 0; i < colonyCount; i++) {
+                const colony = document.createElement('div');
+                colony.className = 'colony';
+                // 确保位置在可见区域内，增加安全边距值，防止菌落出现在边界
+                const safeX = Math.max(20, Math.min(plateWidth - 35, primaryPositions[i].x));
+                const safeY = Math.max(20, Math.min(plateHeight - 35, primaryPositions[i].y));
+                colony.style.left = `${safeX}px`;
+                colony.style.top = `${safeY}px`;
+                colony.dataset.number = i + 1;
+                
+                // 根据随机分配的颜色设置菌落颜色
+                if (colors[i] === 'white') {
+                    colony.style.backgroundColor = '#f9f9f9'; // 白色菌落
+                    colony.style.border = '1px solid #ccc';
+                } else {
+                    colony.style.backgroundColor = '#4a90e2'; // 蓝色菌落
+                    colony.style.border = '1px solid #2c3e50';
+                }
+                
+                colony.textContent = i + 1; // 将编号直接添加到菌落内部
+                if(primaryColonies) primaryColonies.appendChild(colony);
+                
+                // 存储菌落位置和颜色信息
+                colonyNumbers[i + 1] = {
+                    x: safeX,
+                    y: safeY
+                };
+                
+                colonyColors[i + 1] = colors[i]; // 记录菌落颜色
+            }
+            
+            // 设置正确的菌落
+            if (isCorrectSelection) {
+                correctColonies = [1, 3, 5, 7];
+                totalCorrectColonies = correctColonies.length;
+                if(totalColoniesEl) totalColoniesEl.textContent = totalCorrectColonies;
+            } else {
+                correctColonies = [2, 4, 6, 8];
+                totalCorrectColonies = correctColonies.length;
+                if(totalColoniesEl) totalColoniesEl.textContent = totalCorrectColonies;
+            }
+            
+            // 为菌落添加点击事件监听器
+            document.querySelectorAll('.colony').forEach(colony => {
+                colony.addEventListener('click', handleColonyClick);
+            });
+        }
+
+        // 处理菌落点击事件
+        function handleColonyClick(event) {
+            const colony = event.target;
+            const colonyNumber = parseInt(colony.dataset.number);
+            const isWhiteColony = colony.style.backgroundColor === 'rgb(249, 249, 249)' || colony.style.backgroundColor === '#f9f9f9';
+            
+            if (isWhiteColony) {
+                // 选择白色菌落 - 正确
+                colony.style.backgroundColor = '#27ae60'; // 绿色表示正确选择
+                colony.style.borderColor = '#2ecc71';
+                showMessage('选择正确！白色菌落表示含有重组质粒的细胞');
+            } else {
+                // 选择蓝色菌落 - 错误
+                colony.style.backgroundColor = '#e74c3c'; // 红色表示错误选择
+                colony.style.borderColor = '#c0392b';
+                showMessage('选择错误！蓝色菌落表示不含重组质粒的细胞');
+            }
+        }
+
+        // 数组随机打乱函数
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 生成不重叠的菌落位置 - 优化算法，确保所有菌落都在培养基内部且不贴边，并且确保总是生成8个菌落
+        function generateNonOverlappingPositions(count, width, height, radius) {
+            const positions = [];
+            // 调整间距使菌落更紧凑且能完整显示
+            const minDistance = radius * 0.5; // 缩小间距为现在的二分之一
+            const margin = 25; // 增加边缘安全距离，确保菌落完全在平板内部而不会出现在边界
+            const maxAttempts = 1000; // 最大尝试次数
+            
+            // 重新定义生成区域，确保所有区域都在培养基内部且合理分布
+            const spawnAreas = [
+                // 左上区域
+                { minX: margin, maxX: width/2 - 10, minY: margin, maxY: height/2 - 10 },
+                // 右上区域
+                { minX: width/2 + 10, maxX: width-margin, minY: margin, maxY: height/2 - 10 },
+                // 左下区域
+                { minX: margin, maxX: width/2 - 10, minY: height/2 + 10, maxY: height-margin },
+                // 右下区域
+                { minX: width/2 + 10, maxX: width-margin, minY: height/2 + 10, maxY: height-margin },
+                // 中上区域
+                { minX: width/3, maxX: width*2/3, minY: margin, maxY: height/3 },
+                // 中下区域
+                { minX: width/3, maxX: width*2/3, minY: height*2/3, maxY: height-margin },
+                // 左中区域
+                { minX: margin, maxX: width/3, minY: height/3, maxY: height*2/3 },
+                // 右中区域
+                { minX: width*2/3, maxX: width-margin, minY: height/3, maxY: height*2/3 }
+            ];
+            
+            // 打乱区域顺序，增加随机性
+            const shuffledAreas = [...spawnAreas].sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < count; i++) {
+                let attempt = 0;
+                let position;
+                let overlapping;
+                
+                // 为每个菌落选择一个区域
+                const area = shuffledAreas[i % shuffledAreas.length];
+                
+                do {
+                    overlapping = false;
+                    // 在选定区域内随机生成位置
+                    position = {
+                        x: area.minX + Math.random() * (area.maxX - area.minX),
+                        y: area.minY + Math.random() * (area.maxY - area.minY),
+                        number: i + 1
+                    };
+                    
+                    // 检查是否与现有位置重叠
+                    for (let j = 0; j < positions.length; j++) {
+                        const existing = positions[j];
+                        const dx = position.x - existing.x;
+                        const dy = position.y - existing.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < minDistance) {
+                            overlapping = true;
+                            break;
+                        }
+                    }
+                    
+                    attempt++;
+                    if (attempt >= maxAttempts) {
+                        // 即使找不到完全不重叠的位置，也要添加这个位置，确保总是有8个菌落
+                        overlapping = false; // 强制添加这个位置
+                    }
+                } while (overlapping);
+                
+                // 确保位置总是被添加，不会因为任何原因跳过
+                positions.push(position);
+            }
+            
+            // 确保返回的数组长度正好是count（8个）
+            while (positions.length < count) {
+                // 如果因为某些原因位置不足，使用平均分布的默认位置
+                const angle = (positions.length / count) * Math.PI * 2;
+                const radiusPos = Math.min(width, height) / 4; // 使用较小的半径确保在可视区域内
+                const defaultPosition = {
+                    x: width/2 + Math.cos(angle) * radiusPos, // 平均分布在圆周上
+                    y: height/2 + Math.sin(angle) * radiusPos, // 平均分布在圆周上
+                    number: positions.length + 1
+                };
+                positions.push(defaultPosition);
+            }
+            
+            // 额外检查：确保所有位置都在可见区域内
+            for (let i = 0; i < positions.length; i++) {
+                // 确保X坐标在安全范围内
+                positions[i].x = Math.max(margin, Math.min(width - margin, positions[i].x));
+                // 确保Y坐标在安全范围内
+                positions[i].y = Math.max(margin, Math.min(height - margin, positions[i].y));
+            }
+            
+            return positions;
+        }
+
+        // 更新剩余菌落提示
+        function updateRemainingHint() {
+            if(remainingHint && selectedCountEl && totalColoniesEl) {
+                const remaining = totalCorrectColonies - selectedCorrectColonies.length;
+                remainingHint.textContent = `还需选择 ${remaining} 个菌落`;
+                selectedCountEl.textContent = selectedCorrectColonies.length;
+            }
+        }
+
+        // 显示消息
+        function showMessage(message) {
+            if(modalMessage) modalMessage.textContent = message;
+            
+            // 查找模态框内容区域
+            const modalContent = document.querySelector('.modal-content');
+            
+            // 移除可能存在的重新开始按钮（防止重复添加）
+            const existingRestartBtn = document.querySelector('#modalRestartBtn');
+            if (existingRestartBtn && modalContent) {
+                modalContent.removeChild(existingRestartBtn);
+            }
+            
+            // 如果是完成实验的消息，添加重新开始实验按钮
+            if (message === '恭喜你，你已完成所有实验') {
+                const restartBtn = document.createElement('button');
+                restartBtn.id = 'modalRestartBtn';
+                restartBtn.className = 'btn';
+                restartBtn.textContent = '重新开始实验';
+                restartBtn.style.marginLeft = '10px';
+                restartBtn.style.backgroundColor = '#6c757d';
+                
+                // 添加点击事件
+                restartBtn.addEventListener('click', () => {
+                    if(modal) modal.style.display = 'none';
+                    resetExperiment();
+                    showPage(1); // 确保跳转到首页
+                });
+                
+                // 将按钮添加到关闭按钮旁边
+                const closeBtn = document.getElementById('closeModal');
+                if(modalContent && closeBtn) modalContent.appendChild(restartBtn);
+            }
+            
+            if(modal) modal.style.display = 'flex';
+        }
+
+        // 获取细胞名称
+        function getCellName(cellType) {
+            switch(cellType) {
+                case 'no-plasmid': return '无质粒细胞（Kan<sup>s</sup>lacZ<sup>-</sup>）';
+                case 'empty-plasmid': return '无质粒细胞（Kan<sup>r</sup>lacZ<sup>+</sup>）';
+                case 'bamhi-plasmid': return '重组质粒细胞（Kan<sup>r</sup>lacZ<sup>-</sup>）';
+                case 'psti-plasmid': return '重组质粒细胞（Kan<sup>r</sup>lacZ<sup>-</sup>）';
+                default: return '';
+            }
+        }
+
+        // 获取细胞图像
+        function getCellImage(cellType) {
+            switch(cellType) {
+                case 'no-plasmid':
+                    return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2Y1ZjVmNSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyMCIgZmlsbD0iI2Q0ZTRmMyIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgdGV4dC1hbmNvci0ibWlkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMzMzMiPuiAgeW6puWkp+WwjzwvdGV4dD48L3N2Zz4=';
+                case 'empty-plasmid':
+                    return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2Y1ZjVmNSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyMCIgZmlsbD0iI2Q0ZTRmMyIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiM5Y2M4ZTYiLz48dGV4dCB4PSI1MCIgeT0iNTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMzMzMiPuiAgeW6puWkp+WwjzwvdGV4dD48L3N2Zz4=';
+                case 'bamhi-plasmid':
+                    return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI5MCIgY3k9IjUwIiByPSIyMCIgZmlsbD0iI2Q0ZTRmMyIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjgiIGZpbGw9IiM5Y2M4ZTYiLz48cGF0aCBkPSJNNDAsMzAgTDYwLDMwIiBzdHJva2U9IiNlNzRjM2MiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMzMzIj5CYW1ISS5yZWNvbWI8L3RleHQ+PC9zdmc+';
+                case 'psti-plasmid':
+                    return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI5MCIgY3k9IjUwIiByPSIyMCIgZmlsbD0iI2Q0ZTRmMyIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzEiIHI9IjgiIGZpbGw9IiM5Y2M4ZTYiLz48cGF0aCBkPSJNNDAsMzEgTDYwLDMxIiBzdHJva2U9IiM5YjU5YjUiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMzMzIj5Qc3RJLnJlY29tYjwvdGV4dD48L3N2Zz4=';
+                default:
+                    return '';
+            }
+        }
+
+        // 重置实验 - 确保清除所有实验数据和状态
+        function resetExperiment() {
+            // 重置所有全局变量
+            selectedCells = [];
+            selectedMedia = null;
+            correctColonies = [];
+            userSteps = [];
+            currentStep = 1;
+            hasBamhi = false;
+            hasPsti = false;
+            primaryPositions = [];
+            colonyNumbers = {};
+            colonyColors = {}; // 重置菌落颜色记录
+            selectedCorrectColonies = [];
+            totalCorrectColonies = 0;
+            
+            // 完全重置UI元素
+            if(testTube) testTube.innerHTML = '';
+            if(cellNames) cellNames.innerHTML = ''; // 清除细胞名称显示
+            if(mediaDropArea) {
+                mediaDropArea.innerHTML = '拖放培养基至此'; // 恢复初始文本
+                mediaDropArea.classList.remove('active');
+            }
+            if(primaryColonies) primaryColonies.innerHTML = '';
+            if(mediaFeedback) {
+                mediaFeedback.style.display = 'none';
+                mediaFeedback.innerHTML = ''; // 清除反馈内容
+            }
+            if(remainingHint) remainingHint.style.display = 'none';
+            
+            // 清除选择题
+            if(questionContainer) questionContainer.style.display = 'none';
+            if(remainingHint) remainingHint.textContent = ''; // 清除剩余提示
+            if(selectedCountEl) selectedCountEl.textContent = '0';
+            if(totalColoniesEl) totalColoniesEl.textContent = '0'
+            
+            // 清除可能存在的提示信息
+            const hintElement = document.getElementById('cellSelectionHint');
+            if (hintElement) {
+                hintElement.remove();
+            }
+            
+            // 重置按钮状态
+            if(nextStepBtn) nextStepBtn.disabled = true;
+            if(nextStepBtn3) nextStepBtn3.disabled = true;
+            if(nextStepBtn4) nextStepBtn4.disabled = false; // 确保完成按钮可用
+        }
+    </script>
+</body>
+</html>
